@@ -22,9 +22,6 @@
         .btn-group { display: flex; gap: 10px; margin-top: 10px; }
         .copy-btn { background: var(--accent); color: #000; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .copy-btn:hover { transform: scale(1.05); opacity: 0.9; }
-        /* 位置スライダーの強調 */
-        .pos-slider { accent-color: #ff4757 !important; }
-        .pos-val { color: #ff4757 !important; }
     </style>
 </head>
 <body>
@@ -45,7 +42,7 @@
         <div class="control-group">
             <label>1色目の位置 (開始点)</label>
             <div class="row">
-                <input type="range" id="pos1" min="-20" max="100" value="0" class="pos-slider">
+                <input type="range" id="pos1" min="-20" max="100" value="0">
                 <span class="val" id="pos1Val">0%</span>
             </div>
         </div>
@@ -59,7 +56,7 @@
         <div class="control-group">
             <label>3色目の位置 (終了点)</label>
             <div class="row">
-                <input type="range" id="pos3" min="0" max="120" value="100" class="pos-slider">
+                <input type="range" id="pos3" min="0" max="120" value="100">
                 <span class="val" id="pos3Val">100%</span>
             </div>
         </div>
@@ -179,7 +176,7 @@ function draw() {
     const c1 = hexToRgb(document.getElementById('c1').value);
     const c2 = hexToRgb(document.getElementById('c2').value);
     const c3 = hexToRgb(document.getElementById('c3').value);
-    // 位置情報を取得 (0.0 - 1.0ベース、範囲外も許容)
+    
     const pos1 = parseFloat(document.getElementById('pos1').value) / 100;
     const pos2 = parseFloat(document.getElementById('pos2').value) / 100;
     const pos3 = parseFloat(document.getElementById('pos3').value) / 100;
@@ -196,25 +193,18 @@ function draw() {
     for (let x = 0; x < w; x += grain) {
         for (let y = 0; y < h; y += grain) {
             let nx = (x - w/2) * Math.cos(rad) + (y - h/2) * Math.sin(rad);
-            // 現在のピクセルの全体における位置 (0.0〜1.0)
             let t = (nx + (w/2)) / w;
 
             let r, g, b;
 
             if (t < pos1) {
-                // --- 領域外：1色目のベタ塗り ---
                 ({r, g, b} = c1);
             } else if (t > pos3) {
-                // --- 領域外：3色目のベタ塗り ---
                 ({r, g, b} = c3);
             } else {
-                // --- グラデーション領域内 (pos1 〜 pos3) ---
                 if (t < pos2) {
-                    // セグメント1: pos1 -> pos2
-                    // ゼロ除算回避のための微小値
                     const denominator = Math.max(0.001, pos2 - pos1);
                     let segT = (t - pos1) / denominator;
-                    
                     if (t1.on) {
                         const distFromCenter = Math.abs(segT - 0.5) * 2;
                         const intensity = Math.max(0, 1 - distFromCenter / (t1.r + 0.001)) * t1.s;
@@ -223,10 +213,8 @@ function draw() {
                     segT = Math.max(0, Math.min(1, segT));
                     r = lerp(c1.r, c2.r, segT); g = lerp(c1.g, c2.g, segT); b = lerp(c1.b, c2.b, segT);
                 } else {
-                    // セグメント2: pos2 -> pos3
                     const denominator = Math.max(0.001, pos3 - pos2);
                     let segT = (t - pos2) / denominator;
-
                     if (t2.on) {
                         const distFromCenter = Math.abs(segT - 0.5) * 2;
                         const intensity = Math.max(0, 1 - distFromCenter / (t2.r + 0.001)) * t2.s;
