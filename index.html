@@ -2,12 +2,12 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Shareable Noise Gradient Pro</title>
+    <title>高度ノイズグラデーション・メーカー</title>
     <style>
         :root { --bg: #0f0f12; --panel: #1c1c21; --text: #f0f0f0; --accent: #00e5ff; }
-        body { display: flex; flex-direction: column; align-items: center; min-height: 100vh; background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 20px; }
+        body { display: flex; flex-direction: column; align-items: center; min-height: 100vh; background-color: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif; margin: 0; padding: 20px; }
         canvas { box-shadow: 0 30px 80px rgba(0,0,0,0.6); cursor: pointer; background: #000; border-radius: 4px; margin-bottom: 20px; border: 1px solid #333; }
-        .ui-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; background: var(--panel); padding: 25px; border-radius: 12px; width: 1050px; border: 1px solid #333; }
+        .ui-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; background: var(--panel); padding: 25px; border-radius: 12px; width: 1100px; border: 1px solid #333; }
         .section { display: flex; flex-direction: column; gap: 15px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
         .section-title { font-size: 13px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
         .section-title::before { content: ''; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; }
@@ -15,12 +15,16 @@
         label { font-size: 11px; color: #888; font-weight: 600; }
         input[type="range"] { width: 100%; accent-color: var(--accent); cursor: ew-resize; }
         .row { display: flex; align-items: center; gap: 12px; }
-        .val { font-family: monospace; font-size: 11px; min-width: 40px; color: var(--accent); text-align: right; }
+        .val { font-family: 'JetBrains Mono', monospace; font-size: 11px; min-width: 45px; color: var(--accent); text-align: right; }
         .toggle-row { flex-direction: row; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; }
         input[type="color"] { border: none; background: none; width: 38px; height: 38px; cursor: pointer; padding: 0; }
         .hint { margin-top: 15px; font-size: 12px; color: #555; }
-        .copy-btn { margin-top: 10px; background: var(--accent); color: #000; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        .copy-btn { background: var(--accent); color: #000; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .copy-btn:hover { transform: scale(1.05); opacity: 0.9; }
+        /* 位置スライダーの強調 */
+        .pos-slider { accent-color: #ff4757 !important; }
+        .pos-val { color: #ff4757 !important; }
     </style>
 </head>
 <body>
@@ -29,9 +33,9 @@
 
 <div class="ui-container">
     <div class="section">
-        <div class="section-title">Base Setup</div>
+        <div class="section-title">配色と位置</div>
         <div class="control-group">
-            <label>Color Palette</label>
+            <label>配色 (左 / 中 / 右)</label>
             <div class="row">
                 <input type="color" id="c1" value="#4fb8b3">
                 <input type="color" id="c2" value="#c8a2e8">
@@ -39,75 +43,84 @@
             </div>
         </div>
         <div class="control-group">
-            <label>Mid Point Position</label>
+            <label style="color:#ff4757">1色目の位置 (開始点)</label>
             <div class="row">
-                <input type="range" id="midPos" min="10" max="90" value="50">
-                <span class="val" id="midPosVal">50%</span>
+                <input type="range" id="pos1" min="-20" max="100" value="0" class="pos-slider">
+                <span class="val pos-val" id="pos1Val">0%</span>
             </div>
         </div>
         <div class="control-group">
-            <label>Gradient Angle</label>
+            <label>2色目の位置 (中間点)</label>
             <div class="row">
-                <input type="range" id="angle" min="-45" max="45" value="0">
-                <span class="val" id="angleVal">0°</span>
+                <input type="range" id="pos2" min="0" max="100" value="50">
+                <span class="val" id="pos2Val">50%</span>
             </div>
         </div>
         <div class="control-group">
-            <label>Grain Size</label>
+            <label style="color:#ff4757">3色目の位置 (終了点)</label>
             <div class="row">
-                <input type="range" id="grain" min="1" max="5" value="2">
-                <span class="val" id="grainVal">2px</span>
+                <input type="range" id="pos3" min="0" max="120" value="100" class="pos-slider">
+                <span class="val pos-val" id="pos3Val">100%</span>
             </div>
+        </div>
+        <div class="control-group" style="margin-top:10px; border-top:1px solid #333; padding-top:10px;">
+             <label>角度 / 粒子サイズ</label>
+             <div class="row" style="justify-content: space-between;">
+                 <div style="flex:1"><input type="range" id="angle" min="-45" max="45" value="0"><span class="val" id="angleVal" style="min-width:30px">0°</span></div>
+                 <div style="flex:1; margin-left:10px;"><input type="range" id="grain" min="1" max="5" value="2"><span class="val" id="grainVal" style="min-width:30px">2px</span></div>
+             </div>
         </div>
     </div>
 
     <div class="section">
-        <div class="section-title">Noise: Left ➜ Mid</div>
+        <div class="section-title">ノイズ: 1色目 ➜ 2色目</div>
         <div class="control-group toggle-row">
-            <label>Enabled</label>
+            <label>有効にする</label>
             <input type="checkbox" id="n1_on" checked>
         </div>
         <div class="control-group">
-            <label>Scatter Amount</label>
+            <label>拡散度 (散らばり具合)</label>
             <div class="row">
                 <input type="range" id="n1_scatter" min="0" max="100" value="40">
                 <span class="val" id="n1_scatterVal">40%</span>
             </div>
         </div>
         <div class="control-group">
-            <label>Active Range</label>
+            <label>適用範囲 (中央寄り)</label>
             <div class="row">
-                <input type="range" id="n1_range" min="10" max="100" value="60">
-                <span class="val" id="n1_rangeVal">60%</span>
+                <input type="range" id="n1_range" min="10" max="100" value="70">
+                <span class="val" id="n1_rangeVal">70%</span>
             </div>
         </div>
     </div>
 
     <div class="section">
-        <div class="section-title">Noise: Mid ➜ Right</div>
+        <div class="section-title">ノイズ: 2色目 ➜ 3色目</div>
         <div class="control-group toggle-row">
-            <label>Enabled</label>
+            <label>有効にする</label>
             <input type="checkbox" id="n2_on" checked>
         </div>
         <div class="control-group">
-            <label>Scatter Amount</label>
+            <label>拡散度 (散らばり具合)</label>
             <div class="row">
                 <input type="range" id="n2_scatter" min="0" max="100" value="40">
                 <span class="val" id="n2_scatterVal">40%</span>
             </div>
         </div>
         <div class="control-group">
-            <label>Active Range</label>
+            <label>適用範囲 (中央寄り)</label>
             <div class="row">
-                <input type="range" id="n2_range" min="10" max="100" value="60">
-                <span class="val" id="n2_rangeVal">60%</span>
+                <input type="range" id="n2_range" min="10" max="100" value="70">
+                <span class="val" id="n2_rangeVal">70%</span>
             </div>
         </div>
     </div>
 </div>
 
-<button class="copy-btn" onclick="copyURL()">設定用URLをコピー</button>
-<p class="hint">キャンバスをクリックして画像を保存</p>
+<div class="btn-group">
+    <button class="copy-btn" onclick="copyURL()">共有用URLをコピー</button>
+</div>
+<p class="hint">画像をクリックすると、そのままPNGとして保存されます。</p>
 
 <script>
 const canvas = document.getElementById('mainCanvas');
@@ -122,14 +135,12 @@ const hexToRgb = hex => ({
 });
 const lerp = (s, e, t) => s + (e - s) * t;
 
-// --- URL同期ロジック ---
 function updateURL() {
     const params = new URLSearchParams();
     document.querySelectorAll('input').forEach(input => {
         const val = input.type === 'checkbox' ? (input.checked ? '1' : '0') : input.value.replace('#', '');
         params.set(input.id, val);
     });
-    // URL履歴を汚さずに更新
     window.history.replaceState(null, '', '#' + params.toString());
 }
 
@@ -143,31 +154,36 @@ function loadURLParams() {
             if (input.type === 'checkbox') input.checked = val === '1';
             else if (input.type === 'color') input.value = '#' + val;
             else input.value = val;
-            
-            // ラベル表示の更新
-            const display = document.getElementById(key + 'Val');
-            if (display) {
-                let unit = key === 'angle' ? '°' : (key === 'grain' ? 'px' : '%');
-                display.innerText = val + unit;
-            }
+            updateLabel(input);
         }
     });
+}
+
+function updateLabel(input) {
+    const display = document.getElementById(input.id + 'Val');
+    if (display) {
+        let unit = input.id === 'angle' ? '°' : (input.id === 'grain' ? 'px' : '%');
+        display.innerText = input.value + unit;
+    }
 }
 
 function copyURL() {
     navigator.clipboard.writeText(window.location.href);
     const btn = document.querySelector('.copy-btn');
-    btn.innerText = 'コピーしました！';
-    setTimeout(() => btn.innerText = '設定用URLをコピー', 2000);
+    btn.innerText = 'コピー完了！';
+    setTimeout(() => btn.innerText = '共有用URLをコピー', 2000);
 }
 
-// --- 描画ロジック ---
 function draw() {
     const w = canvas.width, h = canvas.height;
     const c1 = hexToRgb(document.getElementById('c1').value);
     const c2 = hexToRgb(document.getElementById('c2').value);
     const c3 = hexToRgb(document.getElementById('c3').value);
-    const midPos = document.getElementById('midPos').value / 100;
+    // 位置情報を取得 (0.0 - 1.0ベース、範囲外も許容)
+    const pos1 = parseFloat(document.getElementById('pos1').value) / 100;
+    const pos2 = parseFloat(document.getElementById('pos2').value) / 100;
+    const pos3 = parseFloat(document.getElementById('pos3').value) / 100;
+    
     const angleDeg = document.getElementById('angle').value;
     const grain = parseInt(document.getElementById('grain').value);
     
@@ -180,28 +196,45 @@ function draw() {
     for (let x = 0; x < w; x += grain) {
         for (let y = 0; y < h; y += grain) {
             let nx = (x - w/2) * Math.cos(rad) + (y - h/2) * Math.sin(rad);
+            // 現在のピクセルの全体における位置 (0.0〜1.0)
             let t = (nx + (w/2)) / w;
-            t = Math.max(0, Math.min(1, t));
 
             let r, g, b;
-            if (t < midPos) {
-                let segT = t / midPos;
-                if (t1.on) {
-                    const distFromCenter = Math.abs(segT - 0.5) * 2;
-                    const intensity = Math.max(0, 1 - distFromCenter / (t1.r + 0.001)) * t1.s;
-                    segT += (Math.random() - 0.5) * intensity;
-                }
-                segT = Math.max(0, Math.min(1, segT));
-                r = lerp(c1.r, c2.r, segT); g = lerp(c1.g, c2.g, segT); b = lerp(c1.b, c2.b, segT);
+
+            if (t < pos1) {
+                // --- 領域外：1色目のベタ塗り ---
+                ({r, g, b} = c1);
+            } else if (t > pos3) {
+                // --- 領域外：3色目のベタ塗り ---
+                ({r, g, b} = c3);
             } else {
-                let segT = (t - midPos) / (1 - midPos);
-                if (t2.on) {
-                    const distFromCenter = Math.abs(segT - 0.5) * 2;
-                    const intensity = Math.max(0, 1 - distFromCenter / (t2.r + 0.001)) * t2.s;
-                    segT += (Math.random() - 0.5) * intensity;
+                // --- グラデーション領域内 (pos1 〜 pos3) ---
+                if (t < pos2) {
+                    // セグメント1: pos1 -> pos2
+                    // ゼロ除算回避のための微小値
+                    const denominator = Math.max(0.001, pos2 - pos1);
+                    let segT = (t - pos1) / denominator;
+                    
+                    if (t1.on) {
+                        const distFromCenter = Math.abs(segT - 0.5) * 2;
+                        const intensity = Math.max(0, 1 - distFromCenter / (t1.r + 0.001)) * t1.s;
+                        segT += (Math.random() - 0.5) * intensity;
+                    }
+                    segT = Math.max(0, Math.min(1, segT));
+                    r = lerp(c1.r, c2.r, segT); g = lerp(c1.g, c2.g, segT); b = lerp(c1.b, c2.b, segT);
+                } else {
+                    // セグメント2: pos2 -> pos3
+                    const denominator = Math.max(0.001, pos3 - pos2);
+                    let segT = (t - pos2) / denominator;
+
+                    if (t2.on) {
+                        const distFromCenter = Math.abs(segT - 0.5) * 2;
+                        const intensity = Math.max(0, 1 - distFromCenter / (t2.r + 0.001)) * t2.s;
+                        segT += (Math.random() - 0.5) * intensity;
+                    }
+                    segT = Math.max(0, Math.min(1, segT));
+                    r = lerp(c2.r, c3.r, segT); g = lerp(c2.g, c3.g, segT); b = lerp(c2.b, c3.b, segT);
                 }
-                segT = Math.max(0, Math.min(1, segT));
-                r = lerp(c2.r, c3.r, segT); g = lerp(c2.g, c3.g, segT); b = lerp(c2.b, c3.b, segT);
             }
             ctx.fillStyle = `rgb(${Math.floor(r)},${Math.floor(g)},${Math.floor(b)})`;
             ctx.fillRect(x, y, grain, grain);
@@ -210,7 +243,6 @@ function draw() {
     updateURL();
 }
 
-// 初期化
 window.onload = () => {
     loadURLParams();
     draw();
@@ -218,18 +250,14 @@ window.onload = () => {
 
 document.querySelectorAll('input').forEach(input => {
     input.addEventListener('input', (e) => {
-        const display = document.getElementById(e.target.id + 'Val');
-        if (display) {
-            let unit = e.target.id === 'angle' ? '°' : (e.target.id === 'grain' ? 'px' : '%');
-            display.innerText = e.target.value + unit;
-        }
+        updateLabel(e.target);
         draw();
     });
 });
 
 canvas.onclick = () => {
     const link = document.createElement('a');
-    link.download = 'noise-gradient-shared.png';
+    link.download = 'noise-gradient-final.png';
     link.href = canvas.toDataURL();
     link.click();
 };
